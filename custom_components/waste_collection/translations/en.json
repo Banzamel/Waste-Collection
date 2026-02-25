@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Waste Collection",
+        "description": "Add the Waste Collection integration. You can manage pickup schedules via the Lovelace card or by importing an ICS/JSON file."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Only one instance of Waste Collection is allowed."
+    }
+  }
+}

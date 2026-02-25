@@ -1,0 +1,11 @@
+{
+  "domain": "waste_collection",
+  "name": "Waste Collection",
+  "documentation": "https://github.com/Banzamel/Waste-Collection",
+  "issue_tracker": "https://github.com/Banzamel/Waste-Collection/issues",
+  "dependencies": [],
+  "codeowners": [],
+  "version": "1.4.0",
+  "iot_class": "local_push",
+  "config_flow": true
+}
