@@ -98,51 +98,6 @@ class WasteCollectionCard extends HTMLElement {
   }
 
   // ─────────────────────────────────────────────
-  //  Parse ICS
-  // ─────────────────────────────────────────────
-  _parseICS(text) {
-    const events = [];
-    const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
-    let current = null;
-    for (const line of lines) {
-      if (line === 'BEGIN:VEVENT') { current = {}; }
-      else if (line === 'END:VEVENT' && current) { events.push(current); current = null; }
-      else if (current) {
-        if (line.startsWith('DTSTART')) {
-          const val = line.split(':').slice(1).join(':').trim().substring(0, 8);
-          if (val.length === 8) {
-            current.date = `${val.substring(0,4)}-${val.substring(4,6)}-${val.substring(6,8)}`;
-          }
-        } else if (line.startsWith('SUMMARY')) {
-          current.summary = line.split(':').slice(1).join(':').trim();
-        }
-      }
-    }
-    return events;
-  }
-
-  _detectType(summary) {
-    const s = summary.toLowerCase();
-    if (s.includes('bio') || s.includes('zielony') || s.includes('organic')) return 'bio';
-    if (s.includes('plastik') || s.includes('plastic') || s.includes('żółt') || s.includes('yellow')) return 'plastic';
-    if (s.includes('papier') || s.includes('paper') || s.includes('niebieski') || s.includes('blue')) return 'paper';
-    if (s.includes('szkło') || s.includes('glass') || s.includes('zielony')) return 'glass';
-    if (s.includes('zmieszan') || s.includes('mixed') || s.includes('szary') || s.includes('grey') || s.includes('gray')) return 'mixed';
-    return null;
-  }
-
-  // ─────────────────────────────────────────────
-  //  Parse JSON schedule
-  // ─────────────────────────────────────────────
-  _parseJSON(text) {
-    const data = JSON.parse(text);
-    // Accept array of {type, date} or {pickups: [...]}
-    const arr = Array.isArray(data) ? data : data.pickups;
-    if (!Array.isArray(arr)) throw new Error('Nieprawidłowy format JSON');
-    return arr.filter(p => p.type && p.date);
-  }
-
-  // ─────────────────────────────────────────────
   //  Render
   // ─────────────────────────────────────────────
   _render() {
@@ -753,16 +708,6 @@ class WasteCollectionCard extends HTMLElement {
     const arr = Array.isArray(data) ? data : data.pickups;
     if (!Array.isArray(arr)) throw new Error('Oczekiwano tablicy lub obiektu z kluczem "pickups"');
     return arr.filter(p => p.type && p.date);
-  }
-
-  _nextPickup(type) {
-    const today = this._today();
-    const future = this._pickups
-      .filter(p => p.type === type)
-      .map(p => ({ ...p, _d: this._parseDate(p.date) }))
-      .filter(p => p._d && p._d >= today)
-      .sort((a, b) => a._d - b._d);
-    return future[0] || null;
   }
 
   _deletePickup(type, date) {

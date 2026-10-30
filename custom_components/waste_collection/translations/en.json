@@ -9,5 +9,108 @@
     "abort": {
       "single_instance_allowed": "Only one instance of Waste Collection is allowed."
     }
+  },
+  "entity": {
+    "sensor": {
+      "schedule": {
+        "name": "Schedule"
+      },
+      "next_collection": {
+        "name": "Next collection"
+      },
+      "bio": {
+        "name": "Bio"
+      },
+      "mixed": {
+        "name": "Mixed"
+      },
+      "plastic": {
+        "name": "Plastic"
+      },
+      "paper": {
+        "name": "Paper"
+      },
+      "glass": {
+        "name": "Glass"
+      }
+    },
+    "binary_sensor": {
+      "any_today": {
+        "name": "Collection today"
+      },
+      "any_tomorrow": {
+        "name": "Collection tomorrow"
+      },
+      "bio_today": {
+        "name": "Bio today"
+      },
+      "bio_tomorrow": {
+        "name": "Bio tomorrow"
+      },
+      "mixed_today": {
+        "name": "Mixed today"
+      },
+      "mixed_tomorrow": {
+        "name": "Mixed tomorrow"
+      },
+      "plastic_today": {
+        "name": "Plastic today"
+      },
+      "plastic_tomorrow": {
+        "name": "Plastic tomorrow"
+      },
+      "paper_today": {
+        "name": "Paper today"
+      },
+      "paper_tomorrow": {
+        "name": "Paper tomorrow"
+      },
+      "glass_today": {
+        "name": "Glass today"
+      },
+      "glass_tomorrow": {
+        "name": "Glass tomorrow"
+      }
+    }
+  },
+  "services": {
+    "update_schedule": {
+      "name": "Update schedule",
+      "description": "Replaces the entire pickup schedule.",
+      "fields": {
+        "pickups": {
+          "name": "Pickups",
+          "description": "List of pickups, e.g. [{\"type\": \"bio\", \"date\": \"2026-03-06\"}]. Invalid entries and duplicates are skipped."
+        }
+      }
+    },
+    "add_pickup": {
+      "name": "Add pickup",
+      "description": "Adds a single pickup to the schedule.",
+      "fields": {
+        "type": {
+          "name": "Waste type",
+          "description": "One of: bio, mixed, plastic, paper, glass."
+        },
+        "date": {
+          "name": "Date",
+          "description": "Pickup date."
+        }
+      }
+    },
+    "remove_pickup": {
+      "name": "Remove pickup",
+      "description": "Removes a single pickup from the schedule.",
+      "fields": {
+        "type": {
+          "name": "Waste type",
+          "description": "One of: bio, mixed, plastic, paper, glass."
+        },
+        "date": {
+          "name": "Date",
+          "description": "Pickup date."
+        }
+      }
+    }
   }
 }

@@ -1,0 +1,45 @@
+update_schedule:
+  fields:
+    pickups:
+      required: true
+      example: '[{"type": "bio", "date": "2026-03-06"}, {"type": "mixed", "date": "2026-03-06"}]'
+      selector:
+        object:
+
+add_pickup:
+  fields:
+    type:
+      required: true
+      example: bio
+      selector:
+        select:
+          options:
+            - bio
+            - mixed
+            - plastic
+            - paper
+            - glass
+    date:
+      required: true
+      example: "2026-03-06"
+      selector:
+        date:
+
+remove_pickup:
+  fields:
+    type:
+      required: true
+      example: bio
+      selector:
+        select:
+          options:
+            - bio
+            - mixed
+            - plastic
+            - paper
+            - glass
+    date:
+      required: true
+      example: "2026-03-06"
+      selector:
+        date:

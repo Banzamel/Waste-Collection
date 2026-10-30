@@ -9,5 +9,108 @@
     "abort": {
       "single_instance_allowed": "Dozwolona jest tylko jedna instancja Wywozu Śmieci."
     }
+  },
+  "entity": {
+    "sensor": {
+      "schedule": {
+        "name": "Harmonogram"
+      },
+      "next_collection": {
+        "name": "Najbliższy wywóz"
+      },
+      "bio": {
+        "name": "Bio"
+      },
+      "mixed": {
+        "name": "Zmieszane"
+      },
+      "plastic": {
+        "name": "Plastik"
+      },
+      "paper": {
+        "name": "Papier"
+      },
+      "glass": {
+        "name": "Szkło"
+      }
+    },
+    "binary_sensor": {
+      "any_today": {
+        "name": "Wywóz dziś"
+      },
+      "any_tomorrow": {
+        "name": "Wywóz jutro"
+      },
+      "bio_today": {
+        "name": "Bio dziś"
+      },
+      "bio_tomorrow": {
+        "name": "Bio jutro"
+      },
+      "mixed_today": {
+        "name": "Zmieszane dziś"
+      },
+      "mixed_tomorrow": {
+        "name": "Zmieszane jutro"
+      },
+      "plastic_today": {
+        "name": "Plastik dziś"
+      },
+      "plastic_tomorrow": {
+        "name": "Plastik jutro"
+      },
+      "paper_today": {
+        "name": "Papier dziś"
+      },
+      "paper_tomorrow": {
+        "name": "Papier jutro"
+      },
+      "glass_today": {
+        "name": "Szkło dziś"
+      },
+      "glass_tomorrow": {
+        "name": "Szkło jutro"
+      }
+    }
+  },
+  "services": {
+    "update_schedule": {
+      "name": "Zaktualizuj harmonogram",
+      "description": "Zastępuje cały harmonogram wywozów.",
+      "fields": {
+        "pickups": {
+          "name": "Wywozy",
+          "description": "Lista wywozów, np. [{\"type\": \"bio\", \"date\": \"2026-03-06\"}]. Nieprawidłowe wpisy i duplikaty są pomijane."
+        }
+      }
+    },
+    "add_pickup": {
+      "name": "Dodaj wywóz",
+      "description": "Dodaje pojedynczy wywóz do harmonogramu.",
+      "fields": {
+        "type": {
+          "name": "Rodzaj odpadów",
+          "description": "Jeden z: bio, mixed, plastic, paper, glass."
+        },
+        "date": {
+          "name": "Data",
+          "description": "Data wywozu."
+        }
+      }
+    },
+    "remove_pickup": {
+      "name": "Usuń wywóz",
+      "description": "Usuwa pojedynczy wywóz z harmonogramu.",
+      "fields": {
+        "type": {
+          "name": "Rodzaj odpadów",
+          "description": "Jeden z: bio, mixed, plastic, paper, glass."
+        },
+        "date": {
+          "name": "Data",
+          "description": "Data wywozu."
+        }
+      }
+    }
   }
 }

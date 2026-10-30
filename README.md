@@ -3,7 +3,7 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![GitHub release](https://img.shields.io/github/v/release/Banzamel/Waste-Collection)](https://github.com/Banzamel/Waste-Collection/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2023.1%2B-blue.svg)](https://www.home-assistant.io/)
+[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.7%2B-blue.svg)](https://www.home-assistant.io/)
 
 A custom Home Assistant integration for tracking your waste collection schedule. Displays a clean Lovelace card with 5 waste type tiles, countdown timers, and visual urgency alerts — plus sensors ready for use in your own automations and notifications.
 
@@ -20,6 +20,10 @@ A custom Home Assistant integration for tracking your waste collection schedule.
 - **HA services** — add or update pickups programmatically via Home Assistant services
 - **Persistent storage** — all data is saved to `.storage/` and survives restarts
 - **Automation-ready** — dedicated sensor per waste type for use in notification automations
+- **Calendar entity** — pickups appear in the Home Assistant calendar and work with calendar triggers
+- **Today / tomorrow binary sensors** — simple on/off entities for automation conditions
+- **Next collection sensor** — the nearest pickup date with all waste types collected that day
+- **Midnight refresh** — countdowns update automatically every day, no restart needed
 
 ---
 
@@ -33,18 +37,57 @@ type: custom:waste-collection-card
 
 ---
 
-## 📦 Sensors Created
+## 📦 Entities Created
+
+All entities are grouped under a single **Waste Collection** device.
+
+### Sensors
 
 | Entity | Description | State |
 |--------|-------------|-------|
 | `sensor.waste_collection_schedule` | Master sensor with all pickups | Total number of entries |
+| `sensor.waste_collection_next` | Nearest collection day | Date (`2026-03-06`) |
 | `sensor.waste_collection_bio` | Bio / organic waste | Days until next pickup |
 | `sensor.waste_collection_mixed` | Mixed / general waste | Days until next pickup |
 | `sensor.waste_collection_plastic` | Plastic & metals | Days until next pickup |
 | `sensor.waste_collection_paper` | Paper & cardboard | Days until next pickup |
 | `sensor.waste_collection_glass` | Glass | Days until next pickup |
 
-Each waste type sensor also exposes a `next_date` attribute with the ISO date of the next scheduled pickup.
+Each waste type sensor exposes `next_date` (ISO date of the next pickup), `waste_type` and `label` attributes.
+
+`sensor.waste_collection_next` exposes:
+
+| Attribute | Example | Description |
+|-----------|---------|-------------|
+| `days` | `1` | Days until the collection |
+| `types` | `["bio", "mixed"]` | Waste types collected that day |
+| `labels` | `["Bio", "Mixed"]` | Localized names (English or Polish, following the HA language) |
+| `description` | `Bio, Mixed` | Labels joined into one string — handy for notifications |
+
+### Binary sensors
+
+| Entity | On when |
+|--------|---------|
+| `binary_sensor.waste_collection_today` | Any waste is collected today |
+| `binary_sensor.waste_collection_tomorrow` | Any waste is collected tomorrow |
+| `binary_sensor.waste_collection_<type>_today` | Given type is collected today (e.g. `binary_sensor.waste_collection_bio_today`) |
+| `binary_sensor.waste_collection_<type>_tomorrow` | Given type is collected tomorrow |
+
+`binary_sensor.waste_collection_today` and `_tomorrow` also expose `date`, `types`, `labels` and `description` attributes.
+
+### Calendar
+
+`calendar.waste_collection` contains one all-day event per pickup. It shows up in the **Calendar** panel and can be used with calendar triggers:
+
+```yaml
+trigger:
+  - platform: calendar
+    event: start
+    entity_id: calendar.waste_collection
+    offset: "-5:00:00"   # 19:00 the evening before
+```
+
+All values refresh automatically at midnight (in your Home Assistant time zone).
 
 ---
 
@@ -65,13 +108,20 @@ Each waste type sensor also exposes a `next_date` attribute with the ISO date of
 
 ### Manual Installation
 
-1. Download the latest release
-2. Copy the `waste_collection` folder to your Home Assistant config directory:
+1. Download `waste_collection.zip` from the [latest release](https://github.com/Banzamel/Waste-Collection/releases/latest)
+2. Unpack it into your Home Assistant `custom_components` directory, so that you get:
    ```
-   /config/custom_components/waste_collection/
+   /config/custom_components/waste_collection/manifest.json
    ```
 3. Restart Home Assistant
 4. Add the integration via **Settings** → **Devices & Services**
+
+### Updating
+
+- **HACS:** open **HACS** → **Waste Collection** → **Update** (or ⋮ → **Redownload** and pick a version), then restart Home Assistant.
+- **Manual:** delete `/config/custom_components/waste_collection/`, unpack the new `waste_collection.zip` in its place and restart Home Assistant.
+
+Your schedule is kept in `.storage/waste_collection.storage`, so updating or reinstalling the integration does not remove it. After an update, refresh the browser with `Ctrl + Shift + R` so the new card version is loaded.
 
 ---
 
@@ -126,7 +176,7 @@ Create a `.json` file and import it via the 📥 button. Accepted formats:
 }
 ```
 
-Valid `type` values: `bio` · `mixed` · `plastic` · `paper` · `glass`
+Valid `type` values: `bio` · `mixed` · `plastic` · `paper` · `glass`. Entries with an unknown type or an invalid date, as well as duplicates, are skipped.
 
 An array format is also accepted:
 ```json
@@ -136,7 +186,7 @@ An array format is also accepted:
 ]
 ```
 
-A ready-made example file for the full year 2026 (`schedule_2026.json`) is included in this repository.
+A ready-made example file for the full year 2026 (`custom_components/waste_collection/example_collection_date.json`) is included in this repository.
 
 ### Method 4 — Home Assistant Services
 
@@ -173,7 +223,7 @@ data:
 
 ## 🔔 Notification Automations
 
-The sensors are designed to be used in your own automations. Below is a ready-to-use example that sends a push notification at 7 PM whenever any collection is happening the next day or the same day.
+Below is a ready-to-use example that sends a push notification at 7 PM whenever any collection is happening the next day:
 
 ```yaml
 automation:
@@ -182,53 +232,20 @@ automation:
     - platform: time
       at: "19:00:00"
   condition:
-    - condition: or
-      conditions:
-        - condition: numeric_state
-          entity_id: sensor.waste_collection_bio
-          below: 2
-          above: -1
-        - condition: numeric_state
-          entity_id: sensor.waste_collection_mixed
-          below: 2
-          above: -1
-        - condition: numeric_state
-          entity_id: sensor.waste_collection_plastic
-          below: 2
-          above: -1
-        - condition: numeric_state
-          entity_id: sensor.waste_collection_paper
-          below: 2
-          above: -1
-        - condition: numeric_state
-          entity_id: sensor.waste_collection_glass
-          below: 2
-          above: -1
+    - condition: state
+      entity_id: binary_sensor.waste_collection_tomorrow
+      state: "on"
   action:
     - service: notify.mobile_app_your_phone
       data:
         title: "🚛 Waste collection reminder"
         message: >
-          {% set types = [] %}
-          {% if states('sensor.waste_collection_bio') | int(-1) <= 1 %}
-            {% set types = types + ['🍃 Bio'] %}
-          {% endif %}
-          {% if states('sensor.waste_collection_mixed') | int(-1) <= 1 %}
-            {% set types = types + ['🗑️ Mixed'] %}
-          {% endif %}
-          {% if states('sensor.waste_collection_plastic') | int(-1) <= 1 %}
-            {% set types = types + ['♻️ Plastic'] %}
-          {% endif %}
-          {% if states('sensor.waste_collection_paper') | int(-1) <= 1 %}
-            {% set types = types + ['📰 Paper'] %}
-          {% endif %}
-          {% if states('sensor.waste_collection_glass') | int(-1) <= 1 %}
-            {% set types = types + ['🍾 Glass'] %}
-          {% endif %}
-          Put out: {{ types | join(', ') }}
+          Put out: {{ state_attr('binary_sensor.waste_collection_tomorrow', 'description') }}
 ```
 
 Replace `notify.mobile_app_your_phone` with your actual notification service.
+
+Need a reminder for one type only? Use e.g. `binary_sensor.waste_collection_glass_tomorrow` in the condition.
 
 ---
 
@@ -238,10 +255,16 @@ Replace `notify.mobile_app_your_phone` with your actual notification service.
 
 ```
 custom_components/waste_collection/
-├── __init__.py            # Integration setup & Lovelace card registration
+├── __init__.py            # Integration setup, services, midnight refresh, card registration
+├── binary_sensor.py       # Today / tomorrow binary sensors
+├── calendar.py            # Calendar entity
 ├── config_flow.py         # UI configuration flow
+├── const.py               # Constants and waste type labels
+├── entity.py              # Shared base entity (device info, update signal)
 ├── manifest.json          # Integration metadata
+├── schedule.py            # Schedule storage and queries
 ├── sensor.py              # Sensor entities
+├── services.yaml          # Service definitions
 ├── translations/
 │   ├── en.json            # English translations
 │   └── pl.json            # Polish translations
@@ -290,7 +313,7 @@ git clone https://github.com/Banzamel/Waste-Collection.git
 cd Waste-Collection
 
 # Symlink to your HA config for live development
-ln -s $(pwd)/waste_collection /path/to/homeassistant/custom_components/waste_collection
+ln -s $(pwd)/custom_components/waste_collection /path/to/homeassistant/custom_components/waste_collection
 ```
 
 Please open an issue before submitting large changes.
