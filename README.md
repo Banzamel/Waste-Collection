@@ -265,6 +265,9 @@ custom_components/waste_collection/
 ├── schedule.py            # Schedule storage and queries
 ├── sensor.py              # Sensor entities
 ├── services.yaml          # Service definitions
+├── brand/
+│   ├── icon.png           # Integration icon (256×256)
+│   └── icon@2x.png        # Integration icon (512×512)
 ├── translations/
 │   ├── en.json            # English translations
 │   └── pl.json            # Polish translations
